@@ -1,0 +1,51 @@
+{
+    "version": "8.0.0023",
+    "description": "Xmanager Power Suite 8 (Xmanager 8 / Xshell 8 / Xftp 8 / Xlpd 8). Silent InstallScript install driven by an embedded response file: one elevation prompt for the per-machine MSIs, then no wizard, installing straight into the scoop app directory.",
+    "homepage": "https://www.netsarang.com/en/xmanager-power-suite/",
+    "license": "Proprietary",
+    "url": "https://media.githubusercontent.com/media/xielm12/software/main/NetSarang.Xmanager.Power.Suite.v8.0.0023.zip#/NetSarang.Xmanager.Power.Suite.v8.0.0023.zip",
+    "hash": "A959720F5031545AF7D83AB5BD38343DFA04F0D5CF01348A2F36A921D5120CFE",
+    "extract_dir": "NetSarang.Xmanager.Power.Suite.v8.0.0023",
+    "installer": {
+        "script": [
+            "$guid = '{3055A39B-17BB-4C4B-85B6-933AAEC00027}'",
+            "$setup = Join-Path $dir 'Setup.exe'",
+            "$iss = Join-Path $dir 'xinstall.iss'",
+            "$l = @('[InstallShield Silent]','Version=v7.00','File=Response File','[File Transfer]','OverwrittenReadOnly=NoToAll',\"[$guid-DlgOrder]\",\"Dlg0=$guid-SdWelcome-0\",'Count=5',\"Dlg1=$guid-SdLicense2Rtf-0\",\"Dlg2=$guid-SdAskDestPath-0\",\"Dlg3=$guid-SdStartCopy2-0\",\"Dlg4=$guid-SdFinish-0\",\"[$guid-SdWelcome-0]\",'Result=1',\"ProductKey=' '\",\"CmdLine=' '\",\"[$guid-SdLicense2Rtf-0]\",'Result=1',\"[$guid-SdAskDestPath-0]\",\"szDir=$dir\",'Result=1',\"[$guid-SdStartCopy2-0]\",'Result=1',\"[$guid-SdFinish-0]\",'Result=1','bOpt1=0','bOpt2=0')",
+            "[IO.File]::WriteAllText($iss, ($l -join [Environment]::NewLine), [Text.Encoding]::GetEncoding(936))",
+            "$p = Start-Process -FilePath $setup -ArgumentList '-s', \"-f1$iss\", \"-f2$(Join-Path $dir 'install.log')\" -WorkingDirectory $dir -Wait -PassThru -Verb RunAs",
+            "if ($p.ExitCode -ne 0) { throw \"Xmanager Power Suite 8 installer exited with $($p.ExitCode), see $(Join-Path $dir 'install.log')\" }",
+            "foreach ($n in 'Xmanager 8','Xshell 8','Xftp 8','Xlpd 8') { if (-not (Test-Path (Join-Path $dir $n))) { throw \"$n was not installed, see $(Join-Path $dir 'install.log')\" } }",
+            "foreach ($n in 'Xmanager 8','Xshell 8','Xftp 8','Xlpd 8') { $c = Join-Path $dir (Join-Path 'Cracked File' $n); if ((Test-Path $c) -and (Test-Path (Join-Path $dir $n))) { Copy-Item -Path (Join-Path $c '*') -Destination (Join-Path $dir $n) -Force -Recurse } }",
+            "foreach ($n in 'Xmanager 8','Xshell 8','Xftp 8','Xlpd 8') { $c = Join-Path $dir (Join-Path 'Cracked File' $n); if (Test-Path $c) { foreach ($f in (Get-ChildItem -Path $c -File)) { $d = Join-Path (Join-Path $dir $n) $f.Name; if (-not (Test-Path $d)) { throw \"crack file $($f.Name) was not copied into $n\" }; if ((Get-Item $d).Length -ne $f.Length) { throw \"crack file $($f.Name) in $n differs in size from the source patch\" } } } }",
+            "foreach ($n in 'Xmanager 8','Xshell 8','Xftp 8','Xlpd 8') { if (-not (Test-Path (Join-Path (Join-Path $dir $n) 'nslicense.dll'))) { throw \"crack copy failed: $n\\nslicense.dll missing\" } }",
+            "Remove-Item -Path (Join-Path $dir 'Cracked File') -Recurse -Force -ErrorAction SilentlyContinue",
+            "Remove-Item -Path $setup, (Join-Path $dir 'ReadMe.txt'), (Join-Path $dir 'Hosts_Blocker.cmd') -Force -ErrorAction SilentlyContinue"
+        ]
+    },
+    "pre_uninstall": [
+        "$roots = 'HKLM:\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall','HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall'",
+        "$ids = @()",
+        "foreach ($r in $roots) { if (Test-Path $r) { foreach ($k in (Get-ChildItem $r)) { $nm = $k.PSChildName -replace '^InstallShield_',''; if ($nm -match '^\\{[0-9A-Fa-f-]{36}\\}$') { $d = (Get-ItemProperty $k.PSPath -ErrorAction SilentlyContinue).DisplayName; if ($d -match 'Xshell 8|Xftp 8|Xlpd 8|Xmanager 8|Xmanager Power Suite') { $ids += $nm } } } } }",
+        "$ids = $ids | Sort-Object -Unique",
+        "if ($ids) { $cmd = (@($ids | ForEach-Object { \"Start-Process msiexec -ArgumentList '/X','$_','/qn','/norestart' -Wait\" }) + @($ids | ForEach-Object { \"Remove-Item -LiteralPath 'HKLM:\\\\SOFTWARE\\\\WOW6432Node\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Uninstall\\\\InstallShield_$_' -Recurse -Force -ErrorAction SilentlyContinue\" }) + @($ids | ForEach-Object { \"Remove-Item -LiteralPath 'HKLM:\\\\SOFTWARE\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Uninstall\\\\InstallShield_$_' -Recurse -Force -ErrorAction SilentlyContinue\" }) + @($ids | ForEach-Object { \"Remove-Item -LiteralPath 'C:\\\\Program Files (x86)\\\\InstallShield Installation Information\\\\$_' -Recurse -Force -ErrorAction SilentlyContinue\" })) -join '; '; Start-Process powershell -Verb RunAs -Wait -WindowStyle Hidden -ArgumentList '-NoProfile','-Command',$cmd }"
+    ],
+    "shortcuts": [
+        [
+            "Xshell 8\\Xshell.exe",
+            "NetSarang Xshell 8"
+        ],
+        [
+            "Xftp 8\\Xftp.exe",
+            "NetSarang Xftp 8"
+        ],
+        [
+            "Xlpd 8\\Xlpd.exe",
+            "NetSarang Xlpd 8"
+        ],
+        [
+            "Xmanager 8\\Xbrowser.exe",
+            "NetSarang Xmanager 8"
+        ]
+    ]
+}
